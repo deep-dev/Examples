@@ -2,12 +2,12 @@
 
 ### 1. It's possible in PHP and how it's can be implemented, if possible:
 ```php
-	 $obj = new Building();
-     $obj['name'] = 'Main tower';
-     $obj['flats'] = 100;
-     $obj->save();
+   $obj = new Building();
+   $obj['name'] = 'Main tower';
+   $obj['flats'] = 100;
+   $obj->save();
 ```
-   Yes it's possible!
+   **Yes it's possible!**
    
  - Sources for Example 1 in file:
 	_example1.php_
@@ -17,24 +17,28 @@
 	$dateTime = new DateTime();
 	echo (clone $dateTime)->format( 'Y');
 ```
-   Yes it's possible!
+   **Yes it's possible!**
    
  - Sources for Example 2 in file:
 	_example2.php_
 	
-### 3. Как проверить соответствует ли дата, хранимая в переменной $str, определенному формату? 
-###    Используем описание формата такое же как в функции php date(). Пример описания формата:
+### 3. How to check if the date stored in a variable $str matches for specific format? 
+###    Use the format description like in the function php date(). Format description example:
 ```php
-    $format = 'd.m.Y';
-	$format = 'H.i';
+   $format = 'd.m.Y';
+   $format = 'H.i';
 ```
  - Source for Example 3 in file:
 	_example3.php_
 	
-### 4. Как получить ответ в формате json в Yii 2?
+### 4. How to get json response in Yii2?
 
 ### 5. Каким образом можно реализовать связь “многие ко многим” в Yii 2?
-Есть таблицы: films - таблица с фильмами, categories - таблица с категориями, films_categories - связь таблиц films и categories. Нужно получить все фильмы из определенной категории.
+       Есть таблицы:
+	   * _films_ - таблица с фильмами,
+	   * _categories_ - таблица с категориями,
+	   * _films_categories_ - связь таблиц _films_ и _categories_.
+	   Нужно получить все фильмы из определенной категории.
 
 ### 6. Есть таблица с колонками a и b, обе колонки типа INT. Дан запрос "select a, count(*) from t group by a". Как изменить этот запрос, чтобы вывелись уникальные значения “a” которые встречаются в таблице более 2х раз?
 

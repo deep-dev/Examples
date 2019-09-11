@@ -26,11 +26,11 @@ class Building implements ArrayAccess
     {
         unset($this->_container[$offset]);
     }
-	
-	public function save()
-	{
-		var_dump($this);
-	}
+
+    public function save()
+    {
+        var_dump($this);
+    }
 }
 
 $obj = new Building();
