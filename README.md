@@ -76,3 +76,7 @@
 
 When you first open the page, the data should be read and written to the MYSQL table. The next time you open the page, data should be output from the MYSQL table ignoring the current situation in the root directory. The so-called cache in the database.
 At the bottom, display the “Refresh” link, which will update files information in the MYSQL table and on the screen. You must provide an archive with application files and a readme.txt file with installation process descriptions.
+
+ - Sources for Example 7 in file:
+    _example7.sql_
+    _example7.php_
