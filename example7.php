@@ -1,16 +1,27 @@
 <?php
 const DISPLAY_KEY = 1; // Display collumn key for items
-$refreshDB = 0;        // Refresh data in Database
+
+if( isset($_POST['refresh']) && $_POST['refresh'] == 1 )
+    $refreshDB = 1;    // Refresh data in Database
+else
+    $refreshDB = 0;    // Read data from Database
+
+$dbh = connect_db();
+$myprocessor = new DirTableProcessor($dbh);
 
 if ( !$refreshDB )
 {
-    echo 'Read from DB';
-
-    $dbh = connect_db();
-	$myprocessor = new DirTableProcessor($dbh);
-	
+    echo '<h4>Read from DB</h4>' . "\n";
     $dirTable = new DirHtmlTable();
-    exit;
+    if ( $myprocessor->execute() == 0 )
+    {
+        echo '<p>First time running... DB is empty</p>';
+        $refreshDB = -1; // First time running
+    } else {
+        unset($dirTable);
+        $mybutton = new RefreshButton();
+        exit;
+    }
 }
 
 try {
@@ -19,11 +30,12 @@ try {
 
       echo '<h4>' . $mydir . '</h4>' . "\n";
 
-	  $dbh = connect_db();
-	  $myprocessor = new DirTableProcessor($dbh);
-	  //$myprocessor->execute();
-
-      $dirTable = new DirHtmlTable();
+      if ( $refreshDB == -1 ) $refreshDB = 1; // First time running
+	  else
+	  {
+         $myprocessor->clearTable();
+         $dirTable = new DirHtmlTable();
+      }
 
       while($dir->valid())
       {
@@ -77,7 +89,7 @@ class DirTableProcessor
     private $dbh;                // PDO instance db connection
     private $selectStatement;    // PDOStatement query for select data
     private $currentId = 0;      // Current max id, already processed
-	private $limit = 10;         // Size of processed data LIMIT
+    private $limit = 10;         // Size of processed data LIMIT
 
     public function __construct(\PDO $pdo)
     {
@@ -87,18 +99,15 @@ class DirTableProcessor
     public function execute()
     {
       try {
-			//$this->loadCurrentState();
-			echo('Getting data from table table1 with id: ' . $this->currentId . "<br>\n");
-            do {
-				$stmt = $this->getSelectStatement($this->currentId);
+         do {
+				$stmt = $this->getSelectStatement($this->currentId); // Getting data from table table1 with id: $this->currentId
 				if ($stmt->execute()) {
-                    $count = $stmt->rowCount();
-                    echo($count . ' records found' . "<br>\n");
+                    $count = $stmt->rowCount(); // records found
                     if ($count > 0) {
                         $records = $this->fetchRecord($stmt);
                         $stmt->closeCursor();
-                        echo(count($records) . ' records found' . "<br>\n");
-                        //$this->updateCount($records);
+                    } else {
+                        if( $this->currentId == 0 ) return 0;
                     }
                 } else {
                     throw new \RuntimeException('Failed to execute query '.$stmt->queryString.': '.$stmt->errorInfo());
@@ -108,6 +117,7 @@ class DirTableProcessor
           echo('Exception: ' . $e->getMessage());
           echo('Exception trace: ' . PHP_EOL . $e->getTraceAsString());
       }
+	  return 1;
     }
 
     protected function getSelectStatement($currentId)
@@ -121,42 +131,30 @@ class DirTableProcessor
       return $this->selectStatement;
     }
 
-	/* Processed records fetch */
+    /* Processed records fetch */
     protected function fetchRecord(\PDOStatement $stmt)
     {
         $records = array();
 		
-        while (($row = $stmt->fetch(\PDO::FETCH_NUM)) !== false) {
-            $this->currentId = (int) $row[0];
-            if ( empty($row[1]) ) continue;
-			echo '<br><pre>';
-			print_r($row);
-			echo '</pre><br>';
-			
-            $records = trim($row[1]);
-            
+        while (($row = $stmt->fetch(\PDO::FETCH_ASSOC)) !== false) {
+            $this->currentId = (int) $row[id];
+            DirHtmlTable::addRow( $row );
         }
-        return $records;
     }
 
-	/* Processed add record */
+    /* Processed add record */
     public function addRecord( $values )
     {
-/*
-INSERT INTO `mytest`.`table1` (`id`, `key`, `name`, `size`, `type`, `modified`) VALUES ('1', '2', 'Myname', '128', 'php', '2019-09-24 00:00:00');
-*/
-/*
-        $values = [
-                    'key' => $key,
-                    'name' => $name,
-                    'size' => $size,
-                    'type' => $type,
-                    'modified' => $modified
-        ];
-*/
         $sql = "INSERT INTO `table1` (`key`, `name`, `size`, `type`, `modified`) VALUES (:key, :name, :size, :type, :modified)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($values);
+    }
+
+    public function clearTable()
+    {
+        $sql = "DELETE FROM `table1` WHERE 1";
+        $deletedRows = $this->pdo->exec($sql);
+        return $deletedRows;
     }
 }
 
@@ -168,7 +166,7 @@ class DirHtmlTable
     public function __construct()
     {
       echo '<table cellpadding="5" cellspacing="0" border="1">' . "\n";
-	  echo '<tr>' . "\n";
+      echo '<tr>' . "\n";
       echo DISPLAY_KEY ? '<th>' . '#' . '</th>' : '';
       echo '<th>' . 'File / Folder Name' . '</th>';
       echo '<th>' . 'Size' . '</th>'; // (for folders display: [DIR])
@@ -177,8 +175,8 @@ class DirHtmlTable
       echo '</tr>' . "\n";
     }
 
-	/* Adding new row with data in HTML table */
-    public function addRow( $values )
+    /* Adding new row with data in HTML table */
+    static public function addRow( $values )
     {
       $key = $values['key'] ?? '&nbsp;'; 
       $name = $values['name'] ?? '&nbsp;';
@@ -204,7 +202,10 @@ class RefreshButton
     public function __construct()
     {
         echo '<p>';
-        echo "<input type='button' name='Refresh' onclick=alert('Refreshing...'); value='Refresh'>\n";
+        echo '<form action="example7.php" method="POST">';
+        echo '<input type="hidden" name="refresh" value="1" />';
+        echo "<input type='submit' name='Refresh' onclick=alert('Refreshing...'); value='Refresh'>";
+        echo '</form>';
         echo '</p>';
     }
 }
