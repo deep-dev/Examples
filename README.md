@@ -38,17 +38,30 @@
 ```
 
 ### 5. How can “many-to-many” relationships be implemented in Yii 2?
-   There are tables:
-   _films_ - table with films,
-   _categories_ - table with categories,
-   _films_categories_ - linking table _films_ and _categories_.
-   Needs to get all the films from a certain category.
+    
+    There are tables:
+    - _films_ - table with films,
+    - _categories_ - table with categories,
+    - _films_categories_ - linking table _films_ and _categories_.
+    
+	Needs to get all the films from a certain category.
+	
+```php
+   class FilmCategory
+   {
+      public function getFilms()
+	  {
+         return $this->hasMany(Films::className(), ['film_id' => 'film_id'])->viaTable('films_categories', ['category_id' => 'category_id']);
+      }
+   }
+```
 
 ### 6. There is a table with columns a and b, both columns are of type INT. The request is:
 ```sql
    "SELECT a, COUNT(*) FROM t GROUP BY a"
 ```
    How to change this query so that unique “a” values are displayed that appear in the table more than 2 times?
+   
 ```sql
    "SELECT a, COUNT(*) AS i FROM t GROUP BY a HAVING i > 2"
 ```
@@ -61,6 +74,5 @@
     - Type (display file extension, empty line for folders);
     - Last Modified Date.
 
-При первом открытии страницы данные должны считываться и записываться в MYSQL таблицу. При последующих открытиях страницы данные должны выводиться из MYSQL таблицы игнорируя текущую ситуацию в корневой директории. Так называемый кэш в БД.
-Внизу вывести ссылку “Обновить”, которая обновит данные о файлах в MYSQL таблице и на экране. Необходимо предоставить архив с файлами приложения и файлом readme.txt с описанием по
-установке.
+When you first open the page, the data should be read and written to the MYSQL table. The next time you open the page, data should be output from the MYSQL table ignoring the current situation in the root directory. The so-called cache in the database.
+At the bottom, display the “Refresh” link, which will update files information in the MYSQL table and on the screen. You must provide an archive with application files and a readme.txt file with installation process descriptions.
