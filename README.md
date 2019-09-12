@@ -14,8 +14,8 @@
 
 ### 2. It's the following possible in PHP?
 ```php
-	$dateTime = new DateTime();
-	echo (clone $dateTime)->format( 'Y');
+    $dateTime = new DateTime();
+    echo (clone $dateTime)->format( 'Y');
 ```
    **Yes it's possible!**
    
@@ -32,23 +32,34 @@
 	_example3.php_
 	
 ### 4. How to get json response in Yii2?
+```php
+   Insert in the controller's action somewhere before return:
+   \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+```
 
-### 5. Каким образом можно реализовать связь “многие ко многим” в Yii 2?
-       Есть таблицы:
-	   _films_ - таблица с фильмами,
-	   _categories_ - таблица с категориями,
-	   _films_categories_ - связь таблиц _films_ и _categories_.
-	   Нужно получить все фильмы из определенной категории.
+### 5. How can “many-to-many” relationships be implemented in Yii 2?
+   There are tables:
+   _films_ - table with films,
+   _categories_ - table with categories,
+   _films_categories_ - linking table _films_ and _categories_.
+   Needs to get all the films from a certain category.
 
-### 6. Есть таблица с колонками a и b, обе колонки типа INT. Дан запрос "select a, count(*) from t group by a". Как изменить этот запрос, чтобы вывелись уникальные значения “a” которые встречаются в таблице более 2х раз?
+### 6. There is a table with columns a and b, both columns are of type INT. The request is:
+```sql
+   "SELECT a, COUNT(*) FROM t GROUP BY a"
+```
+   How to change this query so that unique “a” values are displayed that appear in the table more than 2 times?
+```sql
+   "SELECT a, COUNT(*) AS i FROM t GROUP BY a HAVING i > 2"
+```
 
-### 7. Написать простое веб-приложение, которое выводит таблицу со списком файлов вкорневой директории хоста (DOCUMENT_ROOT).
+### 7. Write a simple web application that displays a table listing files in the host root directory (DOCUMENT_ROOT).
 
-Столбцы таблицы:
-• Название файла/папки;
-• Размер (для папок выводить [DIR]);
-• Тип (вывести расширение файла, для папок пустая строка);
-• Дата последней модификации.
+    Table columns:
+    - File / Folder Name;
+    - Size (for folders display: [DIR]);
+    - Type (display file extension, empty line for folders);
+    - Last Modified Date.
 
 При первом открытии страницы данные должны считываться и записываться в MYSQL таблицу. При последующих открытиях страницы данные должны выводиться из MYSQL таблицы игнорируя текущую ситуацию в корневой директории. Так называемый кэш в БД.
 Внизу вывести ссылку “Обновить”, которая обновит данные о файлах в MYSQL таблице и на экране. Необходимо предоставить архив с файлами приложения и файлом readme.txt с описанием по
