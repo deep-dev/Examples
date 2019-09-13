@@ -1,31 +1,31 @@
 <?php
-const DISPLAY_KEY = 1; // Display collumn key for items
+const DISPLAY_KEY = 1;              // Display collumn key for items
+$mydir = $_SERVER['DOCUMENT_ROOT']; // Directory for display DOCUMENT_ROOT or __DIR__ for example
 
 if( isset($_POST['refresh']) && $_POST['refresh'] == 1 )
     $refreshDB = 1;    // Refresh data in Database
 else
     $refreshDB = 0;    // Read data from Database
 
-$dbh = connect_db();
-$myprocessor = new DirTableProcessor($dbh);
-
-if ( !$refreshDB )
-{
-    echo '<h4>Read from DB</h4>' . "\n";
-    $dirTable = new DirHtmlTable();
-    if ( $myprocessor->execute() == 0 )
-    {
-        echo '<p>First time running... DB is empty</p>';
-        $refreshDB = -1; // First time running
-    } else {
-        unset($dirTable);
-        $mybutton = new RefreshButton();
-        exit;
-    }
-}
-
 try {
-      $mydir = $_SERVER['DOCUMENT_ROOT']; //__DIR__
+      $dbh = DB::getInstance();
+      $myprocessor = new DirTableProcessor($dbh);
+
+      if ( !$refreshDB )
+      {
+          echo '<h4>Read from DB</h4>' . "\n";
+          $dirTable = new DirHtmlTable();
+          if ( $myprocessor->execute() == 0 )
+          {
+              echo '<p>First time running... DB is empty</p>';
+              $refreshDB = -1; // First time running
+          } else {
+              unset($dirTable);
+              $mybutton = new RefreshButton();
+              exit;
+          }
+      }
+
       $dir = new DirectoryIterator( $mydir );
 
       echo '<h4>' . $mydir . '</h4>' . "\n";
@@ -66,27 +66,51 @@ try {
       echo get_class($e) . ": " . $e->getMessage();
 }
 
+class DB
+{
+    private const DB_HOSTNAME = 'localhost';
+    private const DB_DATABASE = 'mytest';
+    private const DB_USERNAME = 'root';
+    private const DB_PASSWORD = '';
+    private const driver = array(PDO :: MYSQL_ATTR_INIT_COMMAND => 'SET NAMES `utf8`'); 
+    private static $instance = NULL;   // Declare instance
 
-/* Connecting to db */
-function connect_db() {
-	$dsn = 'mysql:dbname=mytest;host=localhost';
-	$user = 'root';
-	$password = '';
-	$driver = array(PDO :: MYSQL_ATTR_INIT_COMMAND => 'SET NAMES `utf8`'); 
+    private function __construct() {
+    }
 
-	try {
-		$db = new PDO($dsn, $user, $password, $driver);                 //create new PDO object for connecting db
-		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);   // Set error processing mode to ERRMODE_EXCEPTION
-	} catch (PDOException $e) { 
-		echo 'Error connection: '. $e->getCode() .'|'. $e->getMessage();    
-		return false; 
-	}
-	return $db;
+    /**
+     * Return DB instance or create intitial connection
+     * @return object (PDO)
+     * @access public
+     */
+    public static function getInstance() {
+        if (!self::$instance) {
+            try {
+                  self::$instance = new PDO("mysql:host=".self::DB_HOSTNAME.";dbname=".self::DB_DATABASE, self::DB_USERNAME, self::DB_PASSWORD, self::driver);  //create new PDO object for connecting db
+                  self::$instance-> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Set error processing mode to ERRMODE_EXCEPTION
+            } catch (PDOException $e) { 
+                  echo 'Error connection: '. $e->getCode() .'|'. $e->getMessage();    
+                  return NULL; 
+            }
+        }
+
+        return self::$instance;
+    }
+
+    public static function close() {
+        if (self::$instance) {
+            self::$instance = null;
+        }
+    }
+
+    /* Like the constructor, we make __clone private, so nobody can clone the instance */
+    private function __clone() {
+    }
 }
 
 class DirTableProcessor
 {
-    private $dbh;                // PDO instance db connection
+    private $pdo;                // PDO instance db connection
     private $selectStatement;    // PDOStatement query for select data
     private $currentId = 0;      // Current max id, already processed
     private $limit = 10;         // Size of processed data LIMIT
